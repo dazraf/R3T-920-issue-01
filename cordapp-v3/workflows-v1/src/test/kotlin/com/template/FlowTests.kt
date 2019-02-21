@@ -1,5 +1,6 @@
 package com.template
 
+import com.template.flows.GetNoteBalance
 import com.template.flows.IssueNote
 import com.template.flows.TransferNote
 import com.template.states.NoteState
@@ -47,19 +48,8 @@ class FlowTests {
   }
 
   private fun getNoteBalanceForNode(node: StartedMockNode): Long {
-    println("getting balance for node ${node.info.legalIdentities.first().name}")
-    return node.transaction {
-      val qc = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
-      node.services.vaultService.queryBy(NoteState::class.java, qc)
-        .states
-        .apply {
-          println("states:")
-          this.forEach {
-            println(it)
-          }
-        }
-        .map { it.state.data.amount.quantity }
-        .fold(0L) { acc, value -> acc + value }
-    }
+    val future = node.startFlow(GetNoteBalance()).toCompletableFuture()
+    network.runNetwork(1000)
+    return future.getOrThrow()
   }
 }

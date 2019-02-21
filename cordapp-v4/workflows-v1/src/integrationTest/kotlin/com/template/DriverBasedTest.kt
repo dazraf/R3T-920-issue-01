@@ -1,15 +1,11 @@
 package com.template
 
+import com.template.flows.GetNoteBalance
 import com.template.flows.IssueNote
 import com.template.flows.TransferNote
-import com.template.states.NoteState
 import net.corda.core.contracts.Amount
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startFlow
-import net.corda.core.node.services.Vault
-import net.corda.core.node.services.vault.PageSpecification
-import net.corda.core.node.services.vault.QueryCriteria
-import net.corda.core.node.services.vault.Sort
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.core.TestIdentity
 import net.corda.testing.driver.DriverDSL
@@ -45,24 +41,7 @@ class DriverBasedTest {
   }
 
   private fun getNoteBalanceForNode(node: NodeHandle): Long {
-    println("getting balance for node ${node.nodeInfo.legalIdentities.first().name}")
-
-    val qc = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
-    val page = node.rpc.vaultQueryBy(
-      criteria = qc,
-      paging = PageSpecification(1, 100),
-      sorting = Sort(emptySet()),
-      contractStateType = NoteState::class.java
-    )
-    return page.states
-      .apply {
-        println("states:")
-        this.forEach {
-          println(it)
-        }
-      }
-      .map { it.state.data.amount.quantity }
-      .fold(0L) { acc, value -> acc + value }
+    return node.rpc.startFlow(::GetNoteBalance).returnValue.getOrThrow()
   }
 
   // Runs a test inside the Driver DSL, which provides useful functions for starting nodes, etc.
