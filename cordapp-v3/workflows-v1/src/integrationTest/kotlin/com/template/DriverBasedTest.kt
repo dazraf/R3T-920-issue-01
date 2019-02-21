@@ -1,6 +1,15 @@
 package com.template
 
+import com.template.flows.IssueNote
+import com.template.flows.TransferNote
+import com.template.states.NoteState
+import net.corda.core.contracts.Amount
 import net.corda.core.identity.CordaX500Name
+import net.corda.core.messaging.startFlow
+import net.corda.core.node.services.Vault
+import net.corda.core.node.services.vault.PageSpecification
+import net.corda.core.node.services.vault.QueryCriteria
+import net.corda.core.node.services.vault.Sort
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.core.TestIdentity
 import net.corda.testing.driver.DriverDSL
@@ -16,7 +25,7 @@ class DriverBasedTest {
     private val bankB = TestIdentity(CordaX500Name("BankB", "", "US"))
 
     @Test
-    fun `node test`() = withDriver {
+    fun `that we can issue and transfer`() = withDriver {
         // Start a pair of nodes and wait for them both to be ready.
         val (partyAHandle, partyBHandle) = startNodes(bankA, bankB)
 
@@ -27,11 +36,38 @@ class DriverBasedTest {
         // and other important metrics to ensure that your CorDapp is working as intended.
         assertEquals(bankB.name, partyAHandle.resolveName(bankB.name))
         assertEquals(bankA.name, partyBHandle.resolveName(bankA.name))
+
+        val stateRef = partyAHandle.rpc.startFlow(::IssueNote, Amount.parseCurrency("1000.00 USD")).returnValue.getOrThrow()
+        assertEquals(1_000_00, getNoteBalanceForNode(partyAHandle))
+        partyAHandle.rpc.startFlow(::TransferNote, stateRef, partyBHandle.nodeInfo.legalIdentities.first()).returnValue.getOrThrow()
+        assertEquals(0, getNoteBalanceForNode(partyAHandle))
+        assertEquals(1_000_00, getNoteBalanceForNode(partyBHandle))
+    }
+
+    private fun getNoteBalanceForNode(node: NodeHandle): Long {
+        println("getting balance for node ${node.nodeInfo.legalIdentities.first().name}")
+
+        val qc = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
+        val page = node.rpc.vaultQueryBy(
+          criteria = qc,
+          paging = PageSpecification(1, 100),
+          sorting = Sort(emptySet()),
+          contractStateType = NoteState::class.java
+        )
+        return page.states
+          .apply {
+              println("states:")
+              this.forEach {
+                  println(it)
+              }
+          }
+          .map { it.state.data.amount.quantity }
+          .fold(0L) { acc, value -> acc + value }
     }
 
     // Runs a test inside the Driver DSL, which provides useful functions for starting nodes, etc.
     private fun withDriver(test: DriverDSL.() -> Unit) = driver(
-        DriverParameters(isDebug = true, startNodesInProcess = true)
+      DriverParameters(isDebug = true, startNodesInProcess = true)
     ) { test() }
 
     // Makes an RPC call to retrieve another node's name from the network map.
@@ -42,6 +78,6 @@ class DriverBasedTest {
 
     // Starts multiple nodes simultaneously, then waits for them all to be ready.
     private fun DriverDSL.startNodes(vararg identities: TestIdentity) = identities
-        .map { startNode(providedName = it.name) }
-        .waitForAll()
+      .map { startNode(providedName = it.name) }
+      .waitForAll()
 }

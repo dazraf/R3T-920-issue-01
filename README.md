@@ -8,6 +8,7 @@ No doubt, I'm doing something very wrong!
 * [cordapp-v4](cordapp-v4) - implementation using Corda Enterprise 4.0 RC03
 
 These projects should be nearly identical. 
+The [cordapp-v4](cordapp-v4) project can be switched between OS and CE using the commented and documented lines in [build.gradle](build.gradle).
 
 ## Contents of the projects
 They both declare:
@@ -17,6 +18,8 @@ They both declare:
 * A transfer flow [`TransferNote`](cordapp-v4/workflows-v1/src/main/kotlin/com/template/flows/TransferNote.kt)
 
 In the workflow tests for [v3](cordapp-v3/workflows-v1/src/test/kotlin/com/template/FlowTests.kt) and [v4](cordapp-v4/workflows-v1/src/test/kotlin/com/template/FlowTests.kt) we issue the note, check the balance against issuer's vault, transfer and check balance on both parties.
+
+Also, there are similar driver-based tests in [cordapp-v3/../DriverBasedTest](cordapp-v3/workflows-v1/src/integrationTest/kotlin/com/template/DriverBasedTest.kt) and [cordapp-v4/../DriverBasedTest](cordapp-v4/workflows-v1/src/integrationTest/kotlin/com/template/DriverBasedTest.kt). These behave with the same results as the MockNetwork tests.
 
 ## Result
 This test works fine with in v3. It fails in CE4 RC03. It also fails in OS 4.0-RC07.
