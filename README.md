@@ -21,6 +21,33 @@ In the workflow tests for [v3](cordapp-v3/workflows-v1/src/test/kotlin/com/templ
 
 Also, there are similar driver-based tests in [cordapp-v3/../DriverBasedTest](cordapp-v3/workflows-v1/src/integrationTest/kotlin/com/template/DriverBasedTest.kt) and [cordapp-v4/../DriverBasedTest](cordapp-v4/workflows-v1/src/integrationTest/kotlin/com/template/DriverBasedTest.kt). These behave with the same results as the MockNetwork tests.
 
+## How to reproduce in the shell
+
+Given an initialised network using `deployNodes` the following script reproduces the issue in version 4.
+
+## Shell script to reproduce this
+
+### PartyA
+------
+1. `flow start GetNoteBalance`
+  -> should return 0
+
+2. `flow start IssueNote amount: "$1000"`
+  -> will return StateRef string - copy this 
+
+3. `flow start GetNoteBalance`
+  -> should return 100000
+
+4. `flow start TransferNote  noteStateRefString: "<paste stateref string>", newOwner: "O=PartyB,L=New York,C=US"`
+
+5. `flow start GetNoteBalance`
+  -> should return 0 but returns 100000 in Corda 4!
+
+### PartyB
+------
+6. `flow start GetNoteBalance`
+  -> should return 100000 but returns 0 in Corda 4!
+
 ## Result
 This test works fine with in v3. It fails in CE4 RC03. It also fails in OS 4.0-RC07.
 

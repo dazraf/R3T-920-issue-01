@@ -58,6 +58,7 @@ class TransferNote(private val noteStateRefString: String, private val newOwner:
       .addInputState(sar)
       .addOutputState(outputState.ownableState, NoteContract.ID)
       .addCommand(outputState.command, serviceHub.myInfo.legalIdentities.first().owningKey, newOwner.owningKey)
+
     // Stage 2.
     progressTracker.currentStep = VERIFYING_TRANSACTION
     // Verify that the transaction is valid.

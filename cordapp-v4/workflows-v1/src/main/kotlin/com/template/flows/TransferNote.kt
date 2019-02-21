@@ -43,12 +43,13 @@ class TransferNote(private val noteStateRefString: String, private val newOwner:
 
   @Suspendable
   override fun call(): SignedTransaction {
+    val noteStateRef = StateRefParser.parse(noteStateRefString)
+
     // Obtain a reference to the notary we want to use.
     val notary = serviceHub.networkMapCache.notaryIdentities[0]
     // Stage 1.
     progressTracker.currentStep = GENERATING_TRANSACTION
 
-    val noteStateRef = StateRefParser.parse(noteStateRefString)
     val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED, stateRefs = listOf(noteStateRef))
 
     val sar = serviceHub.vaultService.queryBy(NoteState::class.java, criteria).states.first()
