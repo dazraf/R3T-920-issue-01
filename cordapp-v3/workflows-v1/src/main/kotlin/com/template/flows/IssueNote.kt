@@ -15,7 +15,7 @@ import java.util.*
 
 @StartableByRPC
 @StartableByService
-class IssueNote(private val amount: Amount<Currency>) : FlowLogic<StateRef>() {
+class IssueNote(private val amount: Amount<Currency>) : FlowLogic<String>() {
   companion object {
     object GENERATING_TRANSACTION : ProgressTracker.Step("Generating transaction based on new Note.")
     object VERIFYING_TRANSACTION : ProgressTracker.Step("Verifying contract constraints.")
@@ -35,7 +35,7 @@ class IssueNote(private val amount: Amount<Currency>) : FlowLogic<StateRef>() {
   override val progressTracker = tracker()
 
   @Suspendable
-  override fun call(): StateRef {
+  override fun call(): String {
     // Obtain a reference to the notary we want to use.
     val notary = serviceHub.networkMapCache.notaryIdentities[0]
     // Stage 1.
@@ -70,6 +70,6 @@ class IssueNote(private val amount: Amount<Currency>) : FlowLogic<StateRef>() {
     // Notarise and record the transaction in both parties' vaults.
 
     val st = subFlow(FinalityFlow(signedTransaction, FINALISING_TRANSACTION.childProgressTracker()))
-    return StateRef(st.id, 0)
+    return StateRef(st.id, 0).toString()
   }
 }
