@@ -1,7 +1,5 @@
 # Simple asset transfer issue reproducer
 
-No doubt, I'm doing something very wrong!
-
 ## Directory structure
 
 * [cordapp-v3](cordapp-v3) - implementation using corda 3.3 open source
