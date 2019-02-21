@@ -3,6 +3,7 @@ package com.template.flows
 import co.paralleluniverse.fibers.Suspendable
 import com.template.contracts.NoteContract
 import com.template.states.NoteState
+import com.template.util.StateRefParser
 import net.corda.core.contracts.*
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
@@ -16,7 +17,7 @@ import net.corda.core.utilities.ProgressTracker.Step
 
 @InitiatingFlow
 @StartableByRPC
-class TransferNote(private val noteStateRef: StateRef, private val newOwner: Party) : FlowLogic<SignedTransaction>() {
+class TransferNote(private val noteStateRefString: String, private val newOwner: Party) : FlowLogic<SignedTransaction>() {
   companion object {
     object GENERATING_TRANSACTION : Step("Generating transaction based on new Note.")
     object VERIFYING_TRANSACTION : Step("Verifying contract constraints.")
@@ -47,6 +48,7 @@ class TransferNote(private val noteStateRef: StateRef, private val newOwner: Par
     // Stage 1.
     progressTracker.currentStep = GENERATING_TRANSACTION
 
+    val noteStateRef = StateRefParser.parse(noteStateRefString)
     val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED, stateRefs = listOf(noteStateRef))
 
     val sar = serviceHub.vaultService.queryBy(NoteState::class.java, criteria).states.first()
