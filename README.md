@@ -3,7 +3,7 @@
 ## Directory structure
 
 * [cordapp-v3](cordapp-v3) - implementation using corda 3.3 open source
-* [cordapp-v4](cordapp-v4) - implementation using Corda Enterprise 4.0 RC03
+* [cordapp-v4](cordapp-v4) - implementation using Corda Enterprise 4.0 RC03 and Corda O/S 4.0.
 
 These projects should be nearly identical. 
 The [cordapp-v4](cordapp-v4) project can be switched between OS and CE using the commented and documented lines in [build.gradle](build.gradle).
