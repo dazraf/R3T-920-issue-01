@@ -13,12 +13,14 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import net.corda.core.utilities.ProgressTracker.Step
+import net.corda.core.utilities.loggerFor
 
 
 @InitiatingFlow
 @StartableByRPC
 class TransferNote(private val noteStateRefString: String, private val newOwner: Party) : FlowLogic<SignedTransaction>() {
   companion object {
+    private val log = loggerFor<TransferNote>()
     object GENERATING_TRANSACTION : Step("Generating transaction based on new Note.")
     object VERIFYING_TRANSACTION : Step("Verifying contract constraints.")
     object SIGNING_TRANSACTION : Step("Signing transaction with our private key.")
@@ -57,7 +59,7 @@ class TransferNote(private val noteStateRefString: String, private val newOwner:
     val txBuilder = TransactionBuilder(notary)
       .addInputState(sar)
       .addOutputState(outputState.ownableState, NoteContract.ID)
-      .addCommand(outputState.command, serviceHub.myInfo.legalIdentities.first().owningKey, newOwner.owningKey)
+      .addCommand(outputState.command, sar.state.data.owner.owningKey, newOwner.owningKey)
     // Stage 2.
     progressTracker.currentStep = VERIFYING_TRANSACTION
     // Verify that the transaction is valid.
@@ -86,6 +88,7 @@ class TransferNote(private val noteStateRefString: String, private val newOwner:
     override fun call(): SignedTransaction {
       val signTransactionFlow = object : SignTransactionFlow(otherPartySession) {
         override fun checkTransaction(stx: SignedTransaction) = requireThat {
+          log.info("checking transaction on receiver node")
           val output = stx.tx.outputs.single().data
           "This must be an Note transaction." using (output is NoteState)
           val iou = output as NoteState

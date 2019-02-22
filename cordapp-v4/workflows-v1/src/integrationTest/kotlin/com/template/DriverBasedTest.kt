@@ -36,8 +36,8 @@ class DriverBasedTest {
     val stateRef = partyAHandle.rpc.startFlow(::IssueNote, Amount.parseCurrency("1000.00 USD")).returnValue.getOrThrow()
     assertEquals(1_000_00, getNoteBalanceForNode(partyAHandle))
     partyAHandle.rpc.startFlow(::TransferNote, stateRef, partyBHandle.nodeInfo.legalIdentities.first()).returnValue.getOrThrow()
-    assertEquals(0, getNoteBalanceForNode(partyAHandle))
     assertEquals(1_000_00, getNoteBalanceForNode(partyBHandle))
+    assertEquals(0, getNoteBalanceForNode(partyAHandle))
   }
 
   private fun getNoteBalanceForNode(node: NodeHandle): Long {

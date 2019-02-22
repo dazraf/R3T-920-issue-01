@@ -43,8 +43,8 @@ class FlowTests {
     val f2 = a.startFlow(TransferNote(stateRef, b.info.legalIdentities.first())).toCompletableFuture()
     network.runNetwork(1000)
     f2.getOrThrow()
-    assertEquals(0, getNoteBalanceForNode(a))
     assertEquals(1_000_00, getNoteBalanceForNode(b))
+    assertEquals(0, getNoteBalanceForNode(a))
   }
 
   private fun getNoteBalanceForNode(node: StartedMockNode): Long {
